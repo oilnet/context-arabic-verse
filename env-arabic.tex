@@ -1,0 +1,22 @@
+\startenvironment *
+
+\unprotect
+
+\definefontsynonym
+	[Scheherazade]
+	[\c!name:scheherazade]
+	[\s!features=arabic]
+
+\definefont
+	[Arabic]
+	[Scheherazade sa 1.2]
+
+\definestartstop
+	[arabic]
+	[\c!style=Arabic,
+	 \c!before={\setupdirections[bidi=on]},
+	 commands={\language[arabic]\righttoleft}]
+
+\protect
+
+\stopenvironment

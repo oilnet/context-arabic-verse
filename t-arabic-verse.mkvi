@@ -1,0 +1,126 @@
+%D \module
+%D   [     file=t-arabic-verse,
+%D      version=2013.08.26,
+%D        title=\CONTEXT\ User Module,
+%D     subtitle=Arabic Verse,
+%D       author=Marco Patzer,
+%D         date=\currentdate,
+%D    copyright=Marco Patzer,
+%D      license=GNU General Public License]
+
+%C Copyright (C) 2013  Marco Patzer
+%C
+%C This program is free software: you can redistribute it and/or modify
+%C it under the terms of the GNU General Public License as published by
+%C the Free Software Foundation, either version 3 of the License, or
+%C any later version.
+
+\writestatus{loading}{ConTeXt User Module / Arabic Verse (ver: 2013.08.26)}
+
+\startmodule [arabic-verse]
+
+\unprotect
+
+\environment [env-arabic]
+
+\startinterface all
+	\setinterfaceconstant {delimiter} {delimiter}
+
+	\setinterfacevariable {semicolon} {semicolon}
+	\setinterfacevariable {arabic}    {arabic}
+\stopinterface
+
+\installnamespace                       {arabicverse}
+\installcommandhandler \????arabicverse {arabicverse} \????arabicverse
+
+\appendtoks
+	\setuevalue{\e!start\currentarabicverse}{\arabicverse@start[\currentarabicverse]}%%
+	\setuvalue {\e!stop\currentarabicverse }{\arabicverse@stop                      }%%
+\to\everydefinearabicverse
+
+%% needs to be unexpanded!
+\starttexdefinition unexpanded arabicverse@start [#id]
+	\bgroup
+	\edef\currentarabicverse{#id}
+	\dosingleempty\arabicverse@start_indeed
+\stoptexdefinition
+
+\starttexdefinition arabicverse@start_indeed [#setups]
+	\iffirstargument
+		\setupcurrentarabicverse [#setups]
+	\fi
+	\doifsomething{\arabicverseparameter\c!spacebefore}
+		{\blank[\arabicverseparameter\c!spacebefore]}
+	\getvalue{\e!start\arabicverseparameter\c!language}
+	\arabicverseparameter\c!before
+	\begingroup
+	\obeylines
+	\usearabicversestyleandcolor\c!style\c!color
+	\blank[\v!white]
+	\grabbufferdata
+		[arabicverse@buffer]
+		[\e!start\currentarabicverse]
+		[\e!stop\currentarabicverse]
+\stoptexdefinition
+
+%% #nil: using unexpanded mandates at least one argument
+\starttexdefinition unexpanded arabicverse@stop #nil
+	\bTABLE [\c!setups=\????arabicverse:table:setups]
+		\usercode{arabicverse.processverse(\!!bs\arabicverseparameter{delimiter}\!!es)}
+	\eTABLE
+	\endgroup
+	\getvalue{\e!stop\arabicverseparameter\c!language}
+	\arabicverseparameter\c!after
+	\doifsomething{\arabicverseparameter\c!spaceafter}
+		{\blank[\arabicverseparameter\c!spaceafter]}
+	\egroup
+\stoptexdefinition
+
+\startluacode
+	userdata             = userdata or {}
+	userdata.arabicverse = userdata.arabicverse or {}
+
+	userdata.arabicverse.processverse = function(delimiter)
+		if delimiter == "comma"     then delimiter = "," end
+		if delimiter == "semicolon" then delimiter = ";" end
+		local del = delimiter or ";"
+		local content = buffers.getcontent("arabicverse@buffer")
+		for a, b in string.gmatch(content, "([^"..del.."]*)"..del.."([^\n]*)") do
+			context.bTR()
+				context.bTD() context(b) context.eTD()
+				context.bTD() context(a) context.eTD()
+			context.eTR()
+		end
+	end
+\stopluacode
+
+\startsetups [\????arabicverse:table:setups]
+	%% \setupTABLE [spaceinbetween=\arabicverseparameter{interlinespace}]
+	\setupTABLE [\c!width=\v!broad, \c!frame=\v!off, \c!align=\v!left]
+	\setupTABLE [\c!distance=\arabicverseparameter\c!distance]
+	\setupTABLE [\c!top=\setups{\????arabicverse:stretchline}]
+	\setupTABLE [\c!column] [\v!first] [\c!loffset=\arabicverseparameter\c!loffset]
+	\setupTABLE [\c!column] [\v!last]  [\c!roffset=\arabicverseparameter\c!roffset]
+\stopsetups
+
+\startsetups [\????arabicverse:stretchline]
+	\doif{\arabicverseparameter\c!stretch}\v!yes
+		{\spaceskip=0pt plus 1 fill}
+\stopsetups
+
+\setuparabicverse
+	[\c!spacebefore=0pt,
+	 \c!spaceafter=0pt,
+	 \c!delimiter=\v!semicolon,
+	 \c!distance=2\emwidth,
+	 \c!language=\v!arabic, %% argument needs to provide \start…\stop environment
+	 \c!stretch=\v!yes,
+	 \c!loffset=2\emwidth,
+	 \c!roffset=2\emwidth]
+
+\definearabicverse
+	[arabicverse]
+
+\protect
+
+\stopmodule
