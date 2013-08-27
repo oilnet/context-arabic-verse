@@ -83,6 +83,7 @@
 	userdata.arabicverse.processverse = function(delimiter)
 		if delimiter == "comma"     then delimiter = "," end
 		if delimiter == "semicolon" then delimiter = ";" end
+		if delimiter == "dash"      then delimiter = "-" end
 		local del = delimiter or ";"
 		local content = buffers.getcontent("arabicverse@buffer")
 		for a, b in string.gmatch(content, "([^"..del.."]*)"..del.."([^\n]*)") do
